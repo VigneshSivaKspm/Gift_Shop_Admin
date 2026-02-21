@@ -13,13 +13,49 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Validate Firebase configuration
+const requiredKeys = [
+  "VITE_FIREBASE_API_KEY",
+  "VITE_FIREBASE_AUTH_DOMAIN",
+  "VITE_FIREBASE_PROJECT_ID",
+  "VITE_FIREBASE_STORAGE_BUCKET",
+  "VITE_FIREBASE_MESSAGING_SENDER_ID",
+  "VITE_FIREBASE_APP_ID",
+];
 
-// Initialize Firebase services
-export const auth = getAuth(app);
-export const firestore = getFirestore(app);
-export const storage = getStorage(app);
+const missingKeys = requiredKeys.filter(
+  (key) => !import.meta.env[key as keyof ImportMetaEnv],
+);
+
+if (missingKeys.length > 0) {
+  console.error(
+    "❌ Missing Firebase environment variables:",
+    missingKeys,
+    "\nPlease add these to your .env or Vercel environment variables.",
+  );
+}
+
+// Initialize Firebase
+let app;
+let auth;
+let firestore;
+let storage;
+
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  firestore = getFirestore(app);
+  storage = getStorage(app);
+  console.log("✅ Firebase initialized successfully");
+} catch (error) {
+  console.error("❌ Firebase initialization error:", error);
+  // Provide a valid fallback to prevent crash
+  throw new Error(
+    "Firebase initialization failed. Please check your environment variables. " +
+      "Required variables: " +
+      requiredKeys.join(", "),
+  );
+}
 
 // Optional: Connect to emulators for local development
 // Uncomment the lines below if you're using Firebase emulators locally
@@ -31,4 +67,4 @@ if (import.meta.env.DEV) {
 }
 */
 
-export { app };
+export { app, auth, firestore, storage };
