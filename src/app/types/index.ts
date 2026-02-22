@@ -4,6 +4,7 @@ export interface Product {
   category: string;
   retailPrice: number;
   resellerPrice: number;
+  sellingPrice: number;
   discountPrice: number;
   costPrice: number;
   onOffer: boolean;
@@ -15,6 +16,8 @@ export interface Product {
   rating: number;
   reviews: number;
   discount?: number;
+  needsCustomerName?: boolean;
+  needsCustomerPhoto?: boolean;
 }
 
 export interface CartItem {

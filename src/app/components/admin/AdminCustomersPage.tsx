@@ -16,9 +16,12 @@ import {
   TableCell,
 } from "../ui/table";
 import { Badge } from "../ui/badge";
+import { Modal } from "../ui/Modal";
+import { Button } from "../ui/button";
 import { SearchBar } from "../ui/SearchBar";
 import { Select } from "../ui/select";
 import { getAllCustomers } from "../../services/firestore-service";
+import { updateUserProfile } from "../../services/firestore-service";
 import { toast } from "sonner";
 
 export function AdminCustomersPage() {
@@ -26,6 +29,18 @@ export function AdminCustomersPage() {
   const [filterRole, setFilterRole] = useState("all");
   const [customers, setCustomers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isChangingRole, setIsChangingRole] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    customerId: string;
+    customerName: string;
+    newRole: "customer" | "reseller";
+  }>({
+    isOpen: false,
+    customerId: "",
+    customerName: "",
+    newRole: "customer",
+  });
 
   useEffect(() => {
     loadCustomers();
@@ -55,6 +70,53 @@ export function AdminCustomersPage() {
     }
   };
 
+  const handleChangeRole = async (
+    customerId: string,
+    customerName: string,
+    newRole: "customer" | "reseller",
+  ) => {
+    // Show confirmation modal instead of window.confirm
+    setConfirmDialog({
+      isOpen: true,
+      customerId,
+      customerName,
+      newRole,
+    });
+  };
+
+  const confirmRoleChange = async () => {
+    const { customerId, customerName, newRole } = confirmDialog;
+    const currentCustomer = customers.find((c) => c.id === customerId);
+    const currentRole = currentCustomer?.role;
+
+    try {
+      setIsChangingRole(true);
+      await updateUserProfile(customerId, { role: newRole });
+
+      // Update the local state
+      setCustomers(
+        customers.map((c) =>
+          c.id === customerId ? { ...c, role: newRole } : c,
+        ),
+      );
+
+      toast.success(
+        `${customerName} is now a ${newRole === "reseller" ? "Reseller" : "Customer"}`,
+      );
+    } catch (error) {
+      console.error("Error changing role:", error);
+      toast.error("Failed to change customer role");
+    } finally {
+      setIsChangingRole(false);
+      setConfirmDialog({
+        isOpen: false,
+        customerId: "",
+        customerName: "",
+        newRole: "customer",
+      });
+    }
+  };
+
   const roleOptions = [
     { value: "all", label: "All Customers" },
     { value: "customer", label: "Retail Customers" },
@@ -76,25 +138,25 @@ export function AdminCustomersPage() {
     {
       title: "Total Customers",
       value: customers.filter((c) => c.role === "customer").length,
-      icon: <UserIcon size={24} />,
+      icon: <UserIcon width={24} height={24} />,
       color: "bg-[#2563EB]",
     },
     {
       title: "Total Resellers",
       value: customers.filter((c) => c.role === "reseller").length,
-      icon: <Award size={24} />,
+      icon: <Award width={24} height={24} />,
       color: "bg-[#F59E0B]",
     },
     {
       title: "Profile Complete",
       value: customers.filter((c) => c.profileComplete).length,
-      icon: <CheckCircle size={24} />,
+      icon: <CheckCircle width={24} height={24} />,
       color: "bg-[#10b981]",
     },
     {
       title: "Incomplete Profiles",
       value: customers.filter((c) => !c.profileComplete).length,
-      icon: <AlertCircle size={24} />,
+      icon: <AlertCircle width={24} height={24} />,
       color: "bg-[#ef4444]",
     },
   ];
@@ -102,43 +164,41 @@ export function AdminCustomersPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full overflow-hidden">
       {/* Header */}
       <div>
-        <h2 className="text-xl md:text-2xl font-bold text-[#0f1419]">
+        <h2 className="text-2xl font-bold text-foreground">
           Customer Management
         </h2>
-        <p className="text-xs md:text-sm text-[#64748b] mt-1">
-          Manage customers and resellers
-        </p>
+        <p className="text-muted-foreground">Manage customers and resellers</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
-          <Card key={index} hover className="p-3 md:p-6">
-            <div className="flex items-start justify-between mb-3 md:mb-4">
-              <div className={`${stat.color} text-white p-2 md:p-3 rounded-lg`}>
+          <Card key={index} hover className="p-4 md:p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className={`${stat.color} text-white p-3 rounded-lg`}>
                 {stat.icon}
               </div>
             </div>
-            <h3 className="text-lg md:text-2xl font-bold text-[#0f1419] mb-1 line-clamp-1">
+            <h3 className="text-2xl font-bold text-foreground mb-1">
               {stat.value}
             </h3>
-            <p className="text-xs md:text-sm text-[#64748b]">{stat.title}</p>
+            <p className="text-sm text-muted-foreground">{stat.title}</p>
           </Card>
         ))}
       </div>
 
       {/* Search & Filters */}
       <Card className="p-4 md:p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
@@ -152,40 +212,46 @@ export function AdminCustomersPage() {
         </div>
       </Card>
 
-      {/* Customers Table - Responsive wrapper */}
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
+      {/* Customers Table */}
+      <Card className="overflow-hidden rounded-xl border border-border shadow-sm w-full">
+        <div className="w-full">
+          <Table className="w-full table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[150px]">Name</TableHead>
-                <TableHead className="hidden sm:table-cell min-w-[180px]">
+                <TableHead className="px-1 sm:px-2 w-20 sm:w-24 truncate text-xs">
+                  Name
+                </TableHead>
+                <TableHead className="hidden sm:table-cell px-1 sm:px-2 w-20 truncate text-xs">
                   Email
                 </TableHead>
-                <TableHead className="hidden sm:table-cell min-w-[120px]">
+                <TableHead className="hidden sm:table-cell px-1 sm:px-2 w-16 truncate text-xs">
                   Phone
                 </TableHead>
-                <TableHead className="hidden md:table-cell min-w-[130px]">
-                  Date of Birth
+                <TableHead className="hidden md:table-cell px-1 sm:px-2 w-14 truncate text-xs">
+                  DOB
                 </TableHead>
-                <TableHead className="hidden lg:table-cell min-w-[150px]">
+                <TableHead className="hidden lg:table-cell px-1 sm:px-2 w-20 truncate text-xs">
                   Address
                 </TableHead>
-                <TableHead className="min-w-[110px]">Role</TableHead>
-                <TableHead className="hidden md:table-cell min-w-[110px]">
-                  Profile Complete
+                <TableHead className="px-1 sm:px-2 w-16 truncate text-xs">
+                  Role
                 </TableHead>
-                <TableHead className="hidden sm:table-cell min-w-[110px]">
+                <TableHead className="hidden md:table-cell px-1 sm:px-2 w-16 truncate text-xs">
+                  Status
+                </TableHead>
+                <TableHead className="hidden sm:table-cell px-1 sm:px-2 w-14 truncate text-xs">
                   Updated
                 </TableHead>
-                <TableHead className="min-w-[80px]">Actions</TableHead>
+                <TableHead className="px-1 sm:px-2 w-12 truncate text-xs">
+                  View
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredCustomers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8">
-                    <p className="text-slate-500">
+                    <p className="text-muted-foreground">
                       {customers.length === 0
                         ? "No customers found"
                         : "No matching customers"}
@@ -195,36 +261,33 @@ export function AdminCustomersPage() {
               ) : (
                 filteredCustomers.map((customer) => (
                   <TableRow key={customer.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2 md:gap-3">
-                        <div className="w-8 md:w-10 h-8 md:h-10 bg-[#0066cc] rounded-full flex items-center justify-center text-white font-semibold text-xs md:text-sm flex-shrink-0">
+                    <TableCell className="px-1 sm:px-2">
+                      <div className="flex items-center gap-1 truncate">
+                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
                           {(customer.name || customer.firstName || "C")
                             .charAt(0)
                             .toUpperCase()}
                         </div>
-                        <div>
-                          <span className="font-medium text-xs md:text-sm line-clamp-2 block">
+                        <div className="truncate min-w-0">
+                          <span className="font-medium text-xs block truncate">
                             {customer.name ||
                               `${customer.firstName || ""} ${customer.lastName || ""}`.trim()}
-                          </span>
-                          <span className="text-xs text-[#64748b]">
-                            {customer.id}
                           </span>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <p className="text-xs md:text-sm line-clamp-1 break-all">
+                    <TableCell className="hidden sm:table-cell px-1 sm:px-2">
+                      <p className="text-xs truncate">
                         {customer.email || "N/A"}
                       </p>
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <p className="text-xs md:text-sm">
+                    <TableCell className="hidden sm:table-cell px-1 sm:px-2">
+                      <p className="text-xs truncate">
                         {customer.phone || "N/A"}
                       </p>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <p className="text-xs md:text-sm">
+                    <TableCell className="hidden md:table-cell px-1 sm:px-2">
+                      <p className="text-xs truncate">
                         {customer.dateOfBirth
                           ? new Date(customer.dateOfBirth).toLocaleDateString(
                               "en-IN",
@@ -232,44 +295,57 @@ export function AdminCustomersPage() {
                           : "N/A"}
                       </p>
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <div className="text-xs md:text-sm">
+                    <TableCell className="hidden lg:table-cell px-1 sm:px-2">
+                      <div className="text-xs truncate">
                         {customer.addresses && customer.addresses.length > 0 ? (
-                          <div>
-                            <p className="font-medium line-clamp-1">
-                              {customer.addresses[0].addressLine1}
-                            </p>
-                            <p className="text-[#64748b] text-xs">
-                              {customer.addresses[0].city},{" "}
-                              {customer.addresses[0].state}
-                            </p>
-                          </div>
+                          <p className="text-xs truncate">
+                            {customer.addresses[0].addressLine1}
+                          </p>
                         ) : (
-                          <p className="text-[#64748b]">No address</p>
+                          <p className="text-muted-foreground text-xs">-</p>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-1 sm:px-2">
+                      <div className="flex items-center gap-1">
+                        <Badge
+                          variant={
+                            customer.role === "reseller" ? "warning" : "info"
+                          }
+                          className="text-xs whitespace-nowrap"
+                        >
+                          {customer.role === "reseller" ? "Re." : "Cust."}
+                        </Badge>
+                        <button
+                          onClick={() =>
+                            handleChangeRole(
+                              customer.id,
+                              customer.name ||
+                                `${customer.firstName || ""} ${customer.lastName || ""}`.trim(),
+                              customer.role === "reseller"
+                                ? "customer"
+                                : "reseller",
+                            )
+                          }
+                          disabled={isChangingRole}
+                          className="text-primary hover:text-primary/80 text-xs px-2 py-1 rounded border border-primary/20 hover:border-primary/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={`Change to ${customer.role === "reseller" ? "Customer" : "Reseller"}`}
+                        >
+                          <span className="text-lg">⇄</span>
+                        </button>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell px-1 sm:px-2">
                       <Badge
                         variant={
-                          customer.role === "reseller" ? "warning" : "info"
+                          customer.profileComplete ? "success" : "warning"
                         }
-                        className="text-xs"
+                        className="text-xs whitespace-nowrap"
                       >
-                        {customer.role === "reseller" ? "Reseller" : "Customer"}
+                        {customer.profileComplete ? "Yes" : "No"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell text-xs md:text-sm">
-                      <Badge
-                        variant={
-                          customer.profileComplete ? "success" : "secondary"
-                        }
-                        className="text-xs"
-                      >
-                        {customer.profileComplete ? "Complete" : "Incomplete"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-xs md:text-sm">
+                    <TableCell className="hidden sm:table-cell px-1 sm:px-2 text-xs truncate">
                       {customer.updatedAt
                         ? new Date(customer.updatedAt).toLocaleDateString(
                             "en-IN",
@@ -281,9 +357,10 @@ export function AdminCustomersPage() {
                           )
                         : "N/A"}
                     </TableCell>
-                    <TableCell>
-                      <button className="text-[#1e40af] hover:underline text-xs md:text-sm font-medium">
-                        View
+                    <TableCell className="px-1 sm:px-2">
+                      <button className="text-primary hover:text-primary/80 text-xs font-medium whitespace-nowrap">
+                        <span className="hidden sm:inline">View</span>
+                        <span className="sm:hidden">→</span>
                       </button>
                     </TableCell>
                   </TableRow>
@@ -293,6 +370,66 @@ export function AdminCustomersPage() {
           </Table>
         </div>
       </Card>
+
+      {/* Role Change Confirmation Modal */}
+      <Modal
+        isOpen={confirmDialog.isOpen}
+        onClose={() =>
+          setConfirmDialog({
+            isOpen: false,
+            customerId: "",
+            customerName: "",
+            newRole: "customer",
+          })
+        }
+        title="Confirm Role Change"
+        footer={
+          <div className="flex gap-4 justify-end">
+            <Button
+              variant="outline"
+              onClick={() =>
+                setConfirmDialog({
+                  isOpen: false,
+                  customerId: "",
+                  customerName: "",
+                  newRole: "customer",
+                })
+              }
+              disabled={isChangingRole}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant={
+                confirmDialog.newRole === "reseller" ? "destructive" : "primary"
+              }
+              onClick={confirmRoleChange}
+              disabled={isChangingRole}
+            >
+              {isChangingRole ? "Changing..." : "Confirm"}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-slate-700">
+              <strong>{confirmDialog.customerName}</strong> will be changed to a{" "}
+              <strong>
+                {confirmDialog.newRole === "reseller" ? "Reseller" : "Customer"}
+              </strong>
+              {confirmDialog.newRole === "reseller" && (
+                <span className="block mt-2 text-blue-700">
+                  ℹ️ Resellers have access to bulk ordering and special pricing.
+                </span>
+              )}
+            </p>
+          </div>
+          <p className="text-sm text-slate-600">
+            Are you sure you want to proceed with this change?
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

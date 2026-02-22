@@ -14,6 +14,7 @@ import {
 } from "../../../services/firestore-service";
 import { toast } from "sonner";
 import { CustomerSelectModal } from "./CustomerSelectModal";
+import { InvoicePrintModal } from "./InvoicePrintModal";
 
 interface CreateInvoiceFormProps {
   products: Product[];
@@ -41,6 +42,8 @@ export function CreateInvoiceForm({
   >("paid");
   const [notes, setNotes] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [createdInvoiceData, setCreatedInvoiceData] = useState<any>(null);
 
   const paymentMethods = [
     { value: "cash", label: "Cash" },
@@ -57,10 +60,13 @@ export function CreateInvoiceForm({
   ];
 
   const calculateSubtotal = () => {
-    return invoiceItems.reduce(
-      (sum, item) => sum + item.product.retailPrice * item.quantity,
-      0,
-    );
+    return invoiceItems.reduce((sum, item) => {
+      const price =
+        selectedCustomer?.role === "reseller"
+          ? item.product.resellerPrice
+          : item.product.retailPrice;
+      return sum + price * item.quantity;
+    }, 0);
   };
 
   const subtotal = calculateSubtotal();
@@ -136,9 +142,19 @@ export function CreateInvoiceForm({
         updatedAt: new Date(),
       };
 
-      await createInvoice(invoiceData);
-      toast.success("Invoice created successfully");
-      onSuccess();
+      const result = await createInvoice(invoiceData);
+
+      // Store invoice data for print modal
+      const printData = {
+        ...invoiceData,
+        id: result,
+        invoiceNumber: invoiceData.invoiceNumber || result || "draft",
+        paidAmount: paymentStatus === "paid" ? total : 0,
+      };
+
+      setCreatedInvoiceData(printData);
+      setShowPrintModal(true);
+      toast.success("Invoice created successfully!");
     } catch (error) {
       console.error("Error creating invoice:", error);
       toast.error("Failed to create invoice");
@@ -148,185 +164,233 @@ export function CreateInvoiceForm({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Customer Selection */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-slate-700">Customer *</label>
-        <div className="flex gap-2">
-          {selectedCustomer ? (
-            <div className="flex-1 p-3 border border-blue-200 bg-blue-50 rounded-lg">
-              <p className="font-medium text-slate-800">
-                {selectedCustomer.name}
-              </p>
-              <p className="text-sm text-slate-600">{selectedCustomer.phone}</p>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Left Column - Main Content */}
+      <div className="lg:col-span-2 space-y-6">
+        {/* Customer Selection Card */}
+        <Card className="p-6 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-800">
+                Customer Info
+              </h3>
+              <Badge variant={selectedCustomer ? "default" : "info"}>
+                {selectedCustomer?.role === "reseller"
+                  ? "Reseller"
+                  : "Customer"}
+              </Badge>
             </div>
-          ) : (
-            <div className="flex-1 p-3 border border-red-200 bg-red-50 rounded-lg">
-              <p className="text-sm text-red-600">No customer selected</p>
-            </div>
-          )}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowCustomerModal(true)}
-          >
-            Change Customer
-          </Button>
-        </div>
-      </div>
 
-      {/* Products Section */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium text-slate-700">
-          Add Products to Invoice *
-        </label>
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 max-h-60 overflow-y-auto">
-          <div className="space-y-2">
-            {products.length === 0 ? (
-              <p className="text-center text-slate-500 text-sm py-4">
-                No products available
-              </p>
-            ) : (
-              products.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex items-center justify-between p-2 hover:bg-white rounded border border-transparent hover:border-slate-200 transition-all"
-                >
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-800">
-                      {product.name}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      ₹{product.retailPrice.toLocaleString()} (Stock:{" "}
-                      {product.stock})
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAddProduct(product)}
-                    disabled={product.stock === 0}
-                  >
-                    <Plus size={16} />
-                  </Button>
+            {selectedCustomer ? (
+              <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                <p className="text-sm text-slate-600 mb-1">Selected Customer</p>
+                <p className="font-semibold text-slate-900 text-lg">
+                  {selectedCustomer.name}
+                </p>
+                <div className="mt-3 space-y-1 text-sm text-slate-700">
+                  <p>Phone: {selectedCustomer.phone}</p>
+                  {selectedCustomer.email && (
+                    <p>Email: {selectedCustomer.email}</p>
+                  )}
                 </div>
-              ))
+              </div>
+            ) : (
+              <div className="p-4 bg-red-50 rounded-lg border-2 border-dashed border-red-200">
+                <p className="text-sm font-medium text-red-700">
+                  ⚠ No customer selected yet
+                </p>
+              </div>
             )}
-          </div>
-        </div>
-      </div>
 
-      {/* Invoice Items */}
-      {invoiceItems.length > 0 && (
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-slate-700">
-            Invoice Items ({invoiceItems.length})
-          </label>
-          <Card className="p-0 overflow-hidden border-slate-200">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-100 border-b">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-semibold text-slate-700">
-                      Product
-                    </th>
-                    <th className="px-2 py-2 text-center font-semibold text-slate-700">
-                      Price
-                    </th>
-                    <th className="px-2 py-2 text-center font-semibold text-slate-700">
-                      Qty
-                    </th>
-                    <th className="px-2 py-2 text-center font-semibold text-slate-700">
-                      Total
-                    </th>
-                    <th className="px-2 py-2 text-center font-semibold text-slate-700">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoiceItems.map((item) => (
-                    <tr
-                      key={item.product.id}
-                      className="border-b hover:bg-slate-50"
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => setShowCustomerModal(true)}
+            >
+              {selectedCustomer ? "Change Customer" : "Select Customer"}
+            </Button>
+          </div>
+        </Card>
+
+        {/* Products Section */}
+        <Card className="p-6 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-slate-800">
+              Available Products
+            </h3>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 max-h-80 overflow-y-auto">
+              <div className="space-y-2">
+                {products.length === 0 ? (
+                  <p className="text-center text-slate-500 text-sm py-8">
+                    No products available
+                  </p>
+                ) : (
+                  products.map((product) => (
+                    <div
+                      key={product.id}
+                      className="flex items-center justify-between p-3 bg-white hover:bg-blue-50 rounded-lg border border-slate-200 hover:border-blue-300 transition-all"
                     >
-                      <td className="px-4 py-2">
-                        <p className="font-medium text-slate-800">
-                          {item.product.name}
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-800">
+                          {product.name}
                         </p>
-                        <p className="text-xs text-slate-500">
-                          SKU: {item.product.sku}
-                        </p>
-                      </td>
-                      <td className="px-2 py-2 text-center">
-                        ₹{item.product.retailPrice.toLocaleString()}
-                      </td>
-                      <td className="px-2 py-2">
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() =>
-                              handleUpdateQuantity(
-                                item.product.id,
-                                item.quantity - 1,
-                              )
-                            }
-                            className="p-1 hover:bg-slate-200 rounded"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="w-8 text-center font-medium">
-                            {item.quantity}
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-semibold text-blue-600">
+                            ₹
+                            {(selectedCustomer?.role === "reseller"
+                              ? product.resellerPrice
+                              : product.retailPrice
+                            ).toLocaleString()}
                           </span>
-                          <button
-                            onClick={() =>
-                              handleUpdateQuantity(
-                                item.product.id,
-                                item.quantity + 1,
-                              )
-                            }
-                            className="p-1 hover:bg-slate-200 rounded"
-                          >
-                            <Plus size={14} />
-                          </button>
+                          <span className="text-xs text-slate-500">
+                            Stock: {product.stock}
+                          </span>
                         </div>
-                      </td>
-                      <td className="px-2 py-2 text-center font-bold text-slate-800">
-                        ₹
-                        {(
-                          item.product.retailPrice * item.quantity
-                        ).toLocaleString()}
-                      </td>
-                      <td className="px-2 py-2 text-center">
-                        <button
-                          onClick={() => handleRemoveItem(item.product.id)}
-                          className="p-1 hover:bg-red-50 rounded text-red-600"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddProduct(product)}
+                        disabled={product.stock === 0}
+                        className="ml-2"
+                      >
+                        {/* @ts-ignore */}
+                        <Plus width={16} height={16} />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Invoice Items Table */}
+        {invoiceItems.length > 0 && (
+          <Card className="p-6 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-slate-800">
+                Invoice Items ({invoiceItems.length})
+              </h3>
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
+                <table className="w-full text-sm">
+                  <thead className="bg-gradient-to-r from-slate-100 to-slate-50 border-b">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                        Product
+                      </th>
+                      <th className="px-3 py-3 text-center font-semibold text-slate-700">
+                        Price
+                      </th>
+                      <th className="px-3 py-3 text-center font-semibold text-slate-700">
+                        Qty
+                      </th>
+                      <th className="px-3 py-3 text-center font-semibold text-slate-700">
+                        Total
+                      </th>
+                      <th className="px-3 py-3 text-center font-semibold text-slate-700">
+                        Action
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {invoiceItems.map((item) => (
+                      <tr
+                        key={item.product.id}
+                        className="border-b hover:bg-blue-50 transition-colors"
+                      >
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-slate-800">
+                            {item.product.name}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            SKU: {item.product.sku}
+                          </p>
+                        </td>
+                        <td className="px-3 py-3 text-center font-medium text-slate-700">
+                          ₹
+                          {(selectedCustomer?.role === "reseller"
+                            ? item.product.resellerPrice
+                            : item.product.retailPrice
+                          ).toLocaleString()}
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() =>
+                                handleUpdateQuantity(
+                                  item.product.id,
+                                  item.quantity - 1,
+                                )
+                              }
+                              className="p-1 hover:bg-slate-300 rounded-md transition-colors"
+                            >
+                              <Minus width={14} height={14} />
+                            </button>
+                            <span className="w-8 text-center font-semibold text-slate-800">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                handleUpdateQuantity(
+                                  item.product.id,
+                                  item.quantity + 1,
+                                )
+                              }
+                              className="p-1 hover:bg-slate-300 rounded-md transition-colors"
+                            >
+                              <Plus width={14} height={14} />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 text-center font-bold text-blue-600 text-sm">
+                          ₹
+                          {(
+                            (selectedCustomer?.role === "reseller"
+                              ? item.product.resellerPrice
+                              : item.product.retailPrice) * item.quantity
+                          ).toLocaleString()}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <button
+                            onClick={() => handleRemoveItem(item.product.id)}
+                            className="p-2 hover:bg-red-50 rounded-md text-red-600 transition-colors"
+                          >
+                            <Trash2 width={16} height={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </Card>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Totals Section */}
-      <Card className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200">
-        <div className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-slate-600">Subtotal</span>
-            <span className="font-semibold text-slate-800">
-              ₹{subtotal.toLocaleString()}
-            </span>
-          </div>
+      {/* Right Column - Summary & Payment */}
+      <div className="space-y-6">
+        {/* Summary Card */}
+        <Card className="p-6 bg-gradient-to-br from-slate-50 via-white to-blue-50 border-slate-200 shadow-sm">
+          <div className="space-y-5">
+            <h3 className="text-lg font-semibold text-slate-800">
+              Order Summary
+            </h3>
 
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="text-xs font-medium text-slate-600 block mb-1">
+            {/* Subtotal */}
+            <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+              <span className="text-slate-600 text-sm">Subtotal</span>
+              <span className="font-semibold text-slate-800">
+                ₹{subtotal.toLocaleString()}
+              </span>
+            </div>
+
+            {/* Tax Section */}
+            <div className="space-y-3 pt-2">
+              <label className="text-sm font-medium text-slate-700 block">
                 Tax Rate (%)
               </label>
               <Input
@@ -336,127 +400,140 @@ export function CreateInvoiceForm({
                 step="0.5"
                 value={taxRate}
                 onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                className="h-8"
+                placeholder="0"
+                className="h-9 text-sm"
               />
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-slate-600">Tax Amount</span>
+                <span className="font-semibold text-slate-800 text-sm">
+                  ₹{taxAmount.toLocaleString()}
+                </span>
+              </div>
             </div>
-            <div className="text-right">
-              <span className="text-xs text-slate-600">Tax Amount</span>
-              <p className="font-semibold text-slate-800">
-                ₹{taxAmount.toLocaleString()}
-              </p>
-            </div>
-          </div>
 
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="text-xs font-medium text-slate-600 block mb-1">
-                Discount Amount (₹)
+            {/* Discount Section */}
+            <div className="space-y-3 pt-2">
+              <label className="text-sm font-medium text-slate-700 block">
+                Discount (₹)
               </label>
               <Input
                 type="number"
                 min="0"
                 value={discount}
                 onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-                className="h-8"
+                placeholder="0"
+                className="h-9 text-sm"
+              />
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-slate-600">After Discount</span>
+                <span className="font-semibold text-slate-800 text-sm">
+                  ₹{(subtotal + taxAmount - discountAmount).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Total */}
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 mt-4">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-white">Total Amount</span>
+                <span className="font-bold text-white text-2xl">
+                  ₹{total.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Payment Details Card */}
+        <Card className="p-6 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-slate-800">
+              Payment Info
+            </h3>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Payment Method
+              </label>
+              <select
+                value={paymentMethod}
+                onChange={(e) =>
+                  setPaymentMethod(e.target.value as typeof paymentMethod)
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                {paymentMethods.map((method) => (
+                  <option key={method.value} value={method.value}>
+                    {method.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Payment Status
+              </label>
+              <select
+                value={paymentStatus}
+                onChange={(e) =>
+                  setPaymentStatus(e.target.value as typeof paymentStatus)
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                {paymentStatuses.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <label className="text-sm font-medium text-slate-700">
+                Notes
+              </label>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add notes or special instructions..."
+                rows={3}
+                className="text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            <div className="text-right">
-              <span className="text-xs text-slate-600">After Discount</span>
-              <p className="font-semibold text-slate-800">
-                ₹{(subtotal + taxAmount - discountAmount).toLocaleString()}
-              </p>
-            </div>
           </div>
+        </Card>
 
-          <div className="border-t-2 border-slate-300 pt-3">
-            <div className="flex justify-between text-lg">
-              <span className="font-bold text-slate-800">Total Amount</span>
-              <span className="font-bold text-blue-600 text-2xl">
-                ₹{total.toLocaleString()}
+        {/* Action Buttons */}
+        <div className="space-y-3 pt-2">
+          <Button
+            type="button"
+            variant="primary"
+            className="w-full py-6 text-base font-semibold"
+            onClick={handleCreateInvoice}
+            disabled={
+              isCreating || !selectedCustomer || invoiceItems.length === 0
+            }
+          >
+            {isCreating ? (
+              <span className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span>
+                Creating Invoice...
               </span>
-            </div>
-          </div>
+            ) : (
+              "Create Invoice"
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full py-2 text-sm"
+            onClick={onCancel}
+            disabled={isCreating}
+          >
+            Cancel
+          </Button>
         </div>
-      </Card>
-
-      {/* Payment Details */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">
-            Payment Method *
-          </label>
-          <div className="relative">
-            <select
-              value={paymentMethod}
-              onChange={(e) =>
-                setPaymentMethod(e.target.value as typeof paymentMethod)
-              }
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {paymentMethods.map((method) => (
-                <option key={method.value} value={method.value}>
-                  {method.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">
-            Payment Status *
-          </label>
-          <div className="relative">
-            <select
-              value={paymentStatus}
-              onChange={(e) =>
-                setPaymentStatus(e.target.value as typeof paymentStatus)
-              }
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {paymentStatuses.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Notes */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-slate-700">Notes</label>
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Add any notes or special instructions..."
-          rows={3}
-        />
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 pt-4 border-t">
-        <Button
-          type="button"
-          variant="outline"
-          className="flex-1"
-          onClick={onCancel}
-          disabled={isCreating}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          className="flex-1"
-          onClick={handleCreateInvoice}
-          disabled={
-            isCreating || !selectedCustomer || invoiceItems.length === 0
-          }
-        >
-          {isCreating ? "Creating..." : "Create Invoice"}
-        </Button>
       </div>
 
       {/* Customer Modal */}
@@ -471,6 +548,16 @@ export function CreateInvoiceForm({
         onCreateNew={(newCustomer: User) => {
           setSelectedCustomer(newCustomer);
           setShowCustomerModal(false);
+        }}
+      />
+
+      {/* Print Invoice Modal */}
+      <InvoicePrintModal
+        isOpen={showPrintModal}
+        invoiceData={createdInvoiceData}
+        onClose={() => {
+          setShowPrintModal(false);
+          onSuccess();
         }}
       />
     </div>

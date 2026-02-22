@@ -54,7 +54,7 @@ export function AdminInvoicesPage() {
           getAllInvoices(),
           getInvoiceStats(),
           getAllProducts(),
-          getAllUsers("customer"),
+          getAllUsers(),
         ]);
 
       setInvoices(invoicesData);
@@ -147,7 +147,7 @@ export function AdminInvoicesPage() {
           className="w-full sm:w-auto"
           onClick={() => setShowCreateModal(true)}
         >
-          <Plus size={20} className="mr-2" />
+          <Plus width={20} height={20} className="mr-2" />
           Create Invoice
         </Button>
       </div>
@@ -289,14 +289,22 @@ export function AdminInvoicesPage() {
                           className="p-1 hover:bg-blue-50 rounded"
                           title="View Invoice"
                         >
-                          <Eye size={16} className="text-blue-600" />
+                          <Eye
+                            width={16}
+                            height={16}
+                            className="text-blue-600"
+                          />
                         </button>
                         <button
                           onClick={() => handleDeleteInvoice(invoice.id)}
                           className="p-1 hover:bg-red-50 rounded"
                           title="Delete Invoice"
                         >
-                          <Trash2 size={16} className="text-red-600" />
+                          <Trash2
+                            width={16}
+                            height={16}
+                            className="text-red-600"
+                          />
                         </button>
                       </div>
                     </TableCell>

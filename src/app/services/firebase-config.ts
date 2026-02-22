@@ -1,7 +1,15 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getStorage, connectStorageEmulator } from "firebase/storage";
+import { initializeApp, FirebaseApp } from "firebase/app";
+import { getAuth, connectAuthEmulator, Auth } from "firebase/auth";
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+  Firestore,
+} from "firebase/firestore";
+import {
+  getStorage,
+  connectStorageEmulator,
+  FirebaseStorage,
+} from "firebase/storage";
 
 // Firebase configuration - Set environment variables in .env file
 const firebaseConfig = {
@@ -23,9 +31,7 @@ const requiredKeys = [
   "VITE_FIREBASE_APP_ID",
 ];
 
-const missingKeys = requiredKeys.filter(
-  (key) => !import.meta.env[key as keyof ImportMetaEnv],
-);
+const missingKeys = requiredKeys.filter((key) => !import.meta.env[key as any]);
 
 if (missingKeys.length > 0) {
   console.error(
@@ -36,10 +42,10 @@ if (missingKeys.length > 0) {
 }
 
 // Initialize Firebase
-let app;
-let auth;
-let firestore;
-let storage;
+let app: FirebaseApp;
+let auth: Auth;
+let firestore: Firestore;
+let storage: FirebaseStorage;
 
 try {
   app = initializeApp(firebaseConfig);

@@ -1,5 +1,5 @@
-import React from 'react';
-import { X } from 'lucide-react';
+import React from "react";
+import { X } from "lucide-react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -7,30 +7,40 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
 }
 
-export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }: ModalProps) {
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  footer,
+  size = "md",
+}: ModalProps) {
   if (!isOpen) return null;
 
   const sizes = {
-    sm: 'max-w-md',
-    md: 'max-w-2xl',
-    lg: 'max-w-4xl',
-    xl: 'max-w-6xl'
+    sm: "max-w-md",
+    md: "max-w-2xl",
+    lg: "max-w-4xl",
+    xl: "max-w-6xl",
+    "2xl": "max-w-5xl",
   };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         {/* Backdrop */}
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 transition-opacity"
           onClick={onClose}
         />
-        
+
         {/* Modal */}
-        <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[90vh] overflow-hidden`}>
+        <div
+          className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[90vh] overflow-hidden`}
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB]">
             <h2 className="text-xl font-semibold text-[#111827]">{title}</h2>
@@ -41,12 +51,12 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }:
               <X size={24} />
             </button>
           </div>
-          
+
           {/* Content */}
           <div className="px-6 py-4 overflow-y-auto max-h-[calc(90vh-140px)]">
             {children}
           </div>
-          
+
           {/* Footer */}
           {footer && (
             <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB]">

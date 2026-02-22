@@ -41,12 +41,15 @@ export function AdminProductsPage() {
     category: "",
     retailPrice: "",
     resellerPrice: "",
+    sellingPrice: "",
     discountPrice: "",
     costPrice: "",
     onOffer: false,
     stock: "",
     sku: "",
     description: "",
+    needsCustomerName: false,
+    needsCustomerPhoto: false,
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -87,12 +90,15 @@ export function AdminProductsPage() {
       category: categories.length > 0 ? categories[0].value : "",
       retailPrice: "",
       resellerPrice: "",
+      sellingPrice: "",
       discountPrice: "",
       costPrice: "",
       onOffer: false,
       stock: "",
       sku: "",
       description: "",
+      needsCustomerName: false,
+      needsCustomerPhoto: false,
     });
     setEditingProduct(null);
     setImageFile(null);
@@ -106,12 +112,15 @@ export function AdminProductsPage() {
       category: product.category,
       retailPrice: product.retailPrice.toString(),
       resellerPrice: product.resellerPrice.toString(),
+      sellingPrice: (product.sellingPrice || "").toString(),
       discountPrice: (product.discountPrice || "").toString(),
       costPrice: (product.costPrice || "").toString(),
       onOffer: product.onOffer || false,
       stock: product.stock.toString(),
       sku: product.sku,
       description: product.description,
+      needsCustomerName: product.needsCustomerName || false,
+      needsCustomerPhoto: product.needsCustomerPhoto || false,
     });
     setEditingProduct(product);
     setImageFile(null);
@@ -127,6 +136,9 @@ export function AdminProductsPage() {
         category: formData.category,
         retailPrice: parseFloat(formData.retailPrice),
         resellerPrice: parseFloat(formData.resellerPrice),
+        sellingPrice: formData.sellingPrice
+          ? parseFloat(formData.sellingPrice)
+          : parseFloat(formData.retailPrice),
         discountPrice: formData.discountPrice
           ? parseFloat(formData.discountPrice)
           : parseFloat(formData.retailPrice),
@@ -135,6 +147,8 @@ export function AdminProductsPage() {
         stock: parseInt(formData.stock),
         sku: formData.sku,
         description: formData.description,
+        needsCustomerName: formData.needsCustomerName,
+        needsCustomerPhoto: formData.needsCustomerPhoto,
         image: editingProduct?.image || "",
         tags: editingProduct?.tags || [],
         rating: editingProduct?.rating || 0,
@@ -313,7 +327,7 @@ export function AdminProductsPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         title={editingProduct ? "Edit Product" : "Add New Product"}
-        size="lg"
+        size="2xl"
         footer={
           <div className="flex gap-4 justify-end">
             <Button
@@ -391,6 +405,52 @@ export function AdminProductsPage() {
             />
           </div>
 
+          <div className="space-y-3 border-t border-b border-[#E5E7EB] py-4">
+            <h3 className="text-sm font-semibold text-[#111827]">
+              Product Customization
+            </h3>
+            <div className="flex items-center space-x-3">
+              <input
+                id="needsCustomerName"
+                type="checkbox"
+                checked={formData.needsCustomerName}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    needsCustomerName: e.target.checked,
+                  })
+                }
+                className="w-5 h-5 cursor-pointer border border-[#E5E7EB] rounded"
+              />
+              <label
+                htmlFor="needsCustomerName"
+                className="cursor-pointer text-sm text-[#111827]"
+              >
+                Requires Customer Name (e.g., personalized gifts)
+              </label>
+            </div>
+            <div className="flex items-center space-x-3">
+              <input
+                id="needsCustomerPhoto"
+                type="checkbox"
+                checked={formData.needsCustomerPhoto}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    needsCustomerPhoto: e.target.checked,
+                  })
+                }
+                className="w-5 h-5 cursor-pointer border border-[#E5E7EB] rounded"
+              />
+              <label
+                htmlFor="needsCustomerPhoto"
+                className="cursor-pointer text-sm text-[#111827]"
+              >
+                Requires Customer Photo (e.g., photo products)
+              </label>
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-4">
             <Input
               label="Retail Price (₹)"
@@ -416,6 +476,16 @@ export function AdminProductsPage() {
 
           <div className="grid md:grid-cols-2 gap-4">
             <Input
+              label="Selling Price (₹)"
+              type="number"
+              value={formData.sellingPrice}
+              onChange={(e) =>
+                setFormData({ ...formData, sellingPrice: e.target.value })
+              }
+              placeholder=""
+              required
+            />
+            <Input
               label="Discount/Offer Price (₹)"
               type="number"
               value={formData.discountPrice}
@@ -424,6 +494,9 @@ export function AdminProductsPage() {
               }
               placeholder=""
             />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
             <Input
               label="Cost Price (₹ - for profit calculation)"
               type="number"

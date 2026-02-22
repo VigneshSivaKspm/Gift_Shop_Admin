@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { adminGetSiteContent, adminUpdateSiteContent } from '../../services/admin-service';
-import { SiteContent } from '../../types';
-import { Loader2, Save, AlertCircle, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  adminGetSiteContent,
+  adminUpdateSiteContent,
+} from "../../services/admin-service";
+import { SiteContent } from "../../types";
+import { Loader2, Save, AlertCircle, CheckCircle } from "lucide-react";
 
 const PAGES = [
-  { id: 'about', name: 'About Us' },
-  { id: 'contact', name: 'Contact Us' },
-  { id: 'terms', name: 'Terms & Conditions' },
-  { id: 'privacy', name: 'Privacy Policy' },
-  { id: 'refund', name: 'Refund Policy' }
+  { id: "about", name: "About Us" },
+  { id: "contact", name: "Contact Us" },
+  { id: "terms", name: "Terms & Conditions" },
+  { id: "privacy", name: "Privacy Policy" },
+  { id: "refund", name: "Refund Policy" },
 ];
 
 export function AdminContentPage() {
@@ -20,8 +23,8 @@ export function AdminContentPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   // Form states
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
 
   useEffect(() => {
     fetchContent(selectedPage);
@@ -38,13 +41,13 @@ export function AdminContentPage() {
         setBody(data.content);
       } else {
         // Default content if not found
-        const defaultTitle = PAGES.find(p => p.id === pageId)?.name || '';
+        const defaultTitle = PAGES.find((p) => p.id === pageId)?.name || "";
         setContent(null);
         setTitle(defaultTitle);
-        setBody('');
+        setBody("");
       }
     } catch (err) {
-      setError('Failed to load content');
+      setError("Failed to load content");
       console.error(err);
     } finally {
       setLoading(false);
@@ -61,11 +64,11 @@ export function AdminContentPage() {
         title,
         content: body,
       });
-      setSuccess('Content updated successfully');
+      setSuccess("Content updated successfully");
       // Refresh content
       fetchContent(selectedPage);
     } catch (err) {
-      setError('Failed to save content');
+      setError("Failed to save content");
       console.error(err);
     } finally {
       setSaving(false);
@@ -76,21 +79,32 @@ export function AdminContentPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Website Content</h2>
-          <p className="text-muted-foreground">Manage your static pages content.</p>
+          <h2 className="text-2xl font-bold text-foreground">
+            Website Content
+          </h2>
+          <p className="text-muted-foreground">
+            Manage your static pages content.
+          </p>
         </div>
         <button
           onClick={handleSave}
           disabled={saving}
           className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50"
         >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          {saving ? (
+            // @ts-ignore
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            // @ts-ignore
+            <Save className="w-4 h-4" />
+          )}
           Save Changes
         </button>
       </div>
 
       {error && (
         <div className="bg-destructive/10 text-destructive p-4 rounded-lg flex items-center gap-2">
+          {/* @ts-ignore */}
           <AlertCircle className="w-5 h-5" />
           {error}
         </div>
@@ -98,6 +112,7 @@ export function AdminContentPage() {
 
       {success && (
         <div className="bg-green-50 text-green-700 p-4 rounded-lg flex items-center gap-2">
+          {/* @ts-ignore */}
           <CheckCircle className="w-5 h-5" />
           {success}
         </div>
@@ -113,8 +128,8 @@ export function AdminContentPage() {
                 onClick={() => setSelectedPage(page.id)}
                 className={`text-left px-4 py-3 text-sm font-medium transition-colors border-l-4 ${
                   selectedPage === page.id
-                    ? 'bg-secondary border-primary text-primary'
-                    : 'border-transparent hover:bg-muted text-muted-foreground hover:text-foreground'
+                    ? "bg-secondary border-primary text-primary"
+                    : "border-transparent hover:bg-muted text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {page.name}
