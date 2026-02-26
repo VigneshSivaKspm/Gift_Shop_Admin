@@ -114,7 +114,7 @@ export async function getAllUsers(roleFilter?: string): Promise<User[]> {
       const data = doc.data() as any;
       users.push({
         id: doc.id,
-        ...data,
+        ...(data || {}),
         createdAt: data.createdAt?.toDate
           ? data.createdAt.toDate()
           : data.createdAt,
@@ -282,7 +282,7 @@ export async function getCategories(): Promise<Category[]> {
     const querySnapshot = await getDocs(q);
     const categories: Category[] = [];
     querySnapshot.forEach((doc: QueryDocumentSnapshot<unknown>) => {
-      categories.push({ id: doc.id, ...doc.data() } as Category);
+      categories.push({ id: doc.id, ...(doc.data() || {}) } as Category);
     });
     return categories;
   } catch (error) {
@@ -438,7 +438,7 @@ export async function getOrdersByUserId(userId: string): Promise<Order[]> {
     const querySnapshot = await getDocs(q);
     const orders: Order[] = [];
     querySnapshot.forEach((doc: QueryDocumentSnapshot<unknown>) => {
-      orders.push({ id: doc.id, ...doc.data() } as Order);
+      orders.push({ id: doc.id, ...(doc.data() || {}) } as Order);
     });
     return orders;
   } catch (error) {
@@ -468,7 +468,7 @@ export async function getAllOrders(filters?: {
     const querySnapshot = await getDocs(q);
     const orders: Order[] = [];
     querySnapshot.forEach((doc: QueryDocumentSnapshot<unknown>) => {
-      orders.push({ id: doc.id, ...doc.data() } as Order);
+      orders.push({ id: doc.id, ...(doc.data() || {}) } as Order);
     });
     return orders;
   } catch (error) {
@@ -681,7 +681,7 @@ export function listenToProducts(callback: (products: Product[]) => void) {
   return onSnapshot(q, (querySnapshot: any) => {
     const products: Product[] = [];
     querySnapshot.forEach((doc: QueryDocumentSnapshot<unknown>) => {
-      products.push({ id: doc.id, ...doc.data() } as Product);
+      products.push({ id: doc.id, ...(doc.data() || {}) } as Product);
     });
     callback(products);
   });
@@ -699,7 +699,7 @@ export function listenToUserOrders(
   return onSnapshot(q, (querySnapshot: any) => {
     const orders: Order[] = [];
     querySnapshot.forEach((doc: QueryDocumentSnapshot<unknown>) => {
-      orders.push({ id: doc.id, ...doc.data() } as Order);
+      orders.push({ id: doc.id, ...(doc.data() || {}) } as Order);
     });
     callback(orders);
   });
@@ -716,7 +716,7 @@ export async function getOrderStats(): Promise<{
   try {
     const orders = await getAllOrders();
 
-    const totalOrders = orders.length;
+    const totalOrders = orders?.length || 0;
     const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
@@ -1159,6 +1159,31 @@ export async function deleteOfferBanner(bannerId: string): Promise<void> {
     await deleteDoc(docRef);
   } catch (error) {
     console.error("Error deleting offer banner:", error);
+    throw error;
+  }
+}
+
+export async function refreshOfferBannerURL(bannerId: string): Promise<string> {
+  try {
+    const docRef = doc(firestore, "offerbanners", bannerId);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      throw new Error("Banner not found");
+    }
+
+    const data = docSnap.data() as any;
+    const imageUrl = data.imageUrl;
+
+    // If the URL already exists and is valid, return it
+    // Otherwise try to refresh it from storage
+    if (imageUrl) {
+      return imageUrl;
+    }
+
+    throw new Error("No image URL found");
+  } catch (error) {
+    console.error("Error refreshing offer banner URL:", error);
     throw error;
   }
 }
