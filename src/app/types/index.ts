@@ -18,6 +18,8 @@ export interface Product {
   discount?: number;
   needsCustomerName?: boolean;
   needsCustomerPhoto?: boolean;
+  multipleImagesRequired?: boolean;
+  numberOfImagesRequired?: number;
 }
 
 export interface CartItem {

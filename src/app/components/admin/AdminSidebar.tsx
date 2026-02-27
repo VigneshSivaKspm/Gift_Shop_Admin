@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   X,
+  Gift,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -33,6 +34,16 @@ export function AdminSidebar({
       id: "admin-dashboard",
       name: "Dashboard",
       icon: <LayoutDashboard size={20} />,
+    },
+    {
+      id: "gifts-billing",
+      name: "Gifts Billing",
+      icon: <Gift size={20} />,
+    },
+    {
+      id: "admin-invoices",
+      name: "Invoices",
+      icon: <FileText size={20} />,
     },
     {
       id: "admin-products",
@@ -63,11 +74,6 @@ export function AdminSidebar({
       id: "admin-reports",
       name: "Reports",
       icon: <BarChart3 size={20} />,
-    },
-    {
-      id: "admin-invoices",
-      name: "Invoices",
-      icon: <FileText size={20} />,
     },
     {
       id: "admin-content",

@@ -20,6 +20,9 @@ import { AdminSettingsPage } from "./components/admin/AdminSettingsPage";
 import { AdminInvoicesPage } from "./components/admin/AdminInvoicesPage";
 import { AdminOfferManagement } from "./components/admin/AdminOfferManagement";
 
+// Gifts Billing Components
+import { GiftsBillingPage } from "./gifts/pages/GiftsBilling";
+
 type Page = {
   name: string;
   params?: any;
@@ -123,6 +126,7 @@ export default function App() {
       "admin-invoices": "Invoices",
       "admin-content": "Website Content",
       "admin-settings": "Settings",
+      "gifts-billing": "Gifts Billing System",
     };
 
     return (
@@ -163,6 +167,7 @@ export default function App() {
             {currentPage.name === "admin-offer-management" && (
               <AdminOfferManagement />
             )}
+            {currentPage.name === "gifts-billing" && <GiftsBillingPage />}
           </div>
         </div>
       </div>

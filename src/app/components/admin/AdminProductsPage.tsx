@@ -50,6 +50,8 @@ export function AdminProductsPage() {
     description: "",
     needsCustomerName: false,
     needsCustomerPhoto: false,
+    multipleImagesRequired: false,
+    numberOfImagesRequired: "",
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -99,6 +101,8 @@ export function AdminProductsPage() {
       description: "",
       needsCustomerName: false,
       needsCustomerPhoto: false,
+      multipleImagesRequired: false,
+      numberOfImagesRequired: "",
     });
     setEditingProduct(null);
     setImageFile(null);
@@ -121,6 +125,8 @@ export function AdminProductsPage() {
       description: product.description,
       needsCustomerName: product.needsCustomerName || false,
       needsCustomerPhoto: product.needsCustomerPhoto || false,
+      multipleImagesRequired: product.multipleImagesRequired || false,
+      numberOfImagesRequired: (product.numberOfImagesRequired || "").toString(),
     });
     setEditingProduct(product);
     setImageFile(null);
@@ -149,6 +155,10 @@ export function AdminProductsPage() {
         description: formData.description,
         needsCustomerName: formData.needsCustomerName,
         needsCustomerPhoto: formData.needsCustomerPhoto,
+        multipleImagesRequired: formData.multipleImagesRequired,
+        numberOfImagesRequired: formData.multipleImagesRequired
+          ? parseInt(formData.numberOfImagesRequired || "0")
+          : 0,
         image: editingProduct?.image || "",
         tags: editingProduct?.tags || [],
         rating: editingProduct?.rating || 0,
@@ -449,6 +459,46 @@ export function AdminProductsPage() {
                 Requires Customer Photo (e.g., photo products)
               </label>
             </div>
+            <div className="flex items-center space-x-3">
+              <input
+                id="multipleImagesRequired"
+                type="checkbox"
+                checked={formData.multipleImagesRequired}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    multipleImagesRequired: e.target.checked,
+                    numberOfImagesRequired: e.target.checked
+                      ? formData.numberOfImagesRequired
+                      : "",
+                  })
+                }
+                className="w-5 h-5 cursor-pointer border border-[#E5E7EB] rounded"
+              />
+              <label
+                htmlFor="multipleImagesRequired"
+                className="cursor-pointer text-sm text-[#111827]"
+              >
+                Requires Multiple Customer Images
+              </label>
+            </div>
+            {formData.multipleImagesRequired && (
+              <Input
+                label="Number of Images Required"
+                type="number"
+                min="1"
+                max="10"
+                value={formData.numberOfImagesRequired}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    numberOfImagesRequired: e.target.value,
+                  })
+                }
+                placeholder="e.g., 3 or 5"
+                required
+              />
+            )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
