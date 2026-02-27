@@ -51,8 +51,12 @@ export const ProductListItem: React.FC<ProductListItemProps> = ({
             <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-sm font-medium">
               {product.category}
             </span>
-            <span className="text-[#64748b]">Stock: <strong>{product.stock}</strong></span>
-            <span className="text-[#64748b]">GST: <strong>{product.taxRate}%</strong></span>
+            <span className="text-[#64748b]">
+              Stock: <strong>{product.stock}</strong>
+            </span>
+            <span className="text-[#64748b]">
+              GST: <strong>{product.taxRate}%</strong>
+            </span>
           </div>
         </div>
 
