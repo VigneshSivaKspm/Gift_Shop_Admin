@@ -246,7 +246,7 @@ export const GiftsBillingPage: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="outline" className="px-4 py-2">
+          <Badge className="px-4 py-2 bg-blue-100 text-blue-700 border-blue-200">
             {formatDate(new Date())}
           </Badge>
           <div className="text-right text-xs text-[#64748b]">
@@ -458,7 +458,9 @@ export const GiftsBillingPage: React.FC = () => {
                   <span className="text-xs font-medium text-[#64748b]">
                     Items in Bill
                   </span>
-                  <Badge variant="outline">{items.length}</Badge>
+                  <Badge className="bg-blue-100 text-blue-700 font-semibold">
+                    {items.length}
+                  </Badge>
                 </div>
                 <div className="h-px bg-border/50"></div>
                 <div className="text-right">

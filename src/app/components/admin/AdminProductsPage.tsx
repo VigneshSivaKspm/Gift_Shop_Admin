@@ -415,90 +415,120 @@ export function AdminProductsPage() {
             />
           </div>
 
-          <div className="space-y-3 border-t border-b border-[#E5E7EB] py-4">
-            <h3 className="text-sm font-semibold text-[#111827]">
-              Product Customization
+          <div className="space-y-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="text-sm font-bold text-[#1a2332] flex items-center gap-2">
+              <span className="w-1 h-5 bg-blue-600 rounded"></span>
+              Product Customization Options
             </h3>
-            <div className="flex items-center space-x-3">
-              <input
-                id="needsCustomerName"
-                type="checkbox"
-                checked={formData.needsCustomerName}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    needsCustomerName: e.target.checked,
-                  })
-                }
-                className="w-5 h-5 cursor-pointer border border-[#E5E7EB] rounded"
-              />
-              <label
-                htmlFor="needsCustomerName"
-                className="cursor-pointer text-sm text-[#111827]"
-              >
-                Requires Customer Name (e.g., personalized gifts)
-              </label>
+            <div className="space-y-3">
+              <div className="flex items-start space-x-3 p-2 hover:bg-white/50 rounded transition">
+                <input
+                  id="needsCustomerName"
+                  type="checkbox"
+                  checked={formData.needsCustomerName}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      needsCustomerName: e.target.checked,
+                    })
+                  }
+                  className="w-5 h-5 cursor-pointer border-2 border-[#E5E7EB] rounded mt-1 flex-shrink-0"
+                />
+                <div className="flex-1">
+                  <label
+                    htmlFor="needsCustomerName"
+                    className="cursor-pointer block text-sm font-medium text-[#1a2332]"
+                  >
+                    Requires Customer Name
+                  </label>
+                  <p className="text-xs text-[#64748b] mt-0.5">
+                    For personalized gifts (engraved items, custom printing on
+                    gifts)
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 p-2 hover:bg-white/50 rounded transition">
+                <input
+                  id="needsCustomerPhoto"
+                  type="checkbox"
+                  checked={formData.needsCustomerPhoto}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      needsCustomerPhoto: e.target.checked,
+                    })
+                  }
+                  className="w-5 h-5 cursor-pointer border-2 border-[#E5E7EB] rounded mt-1 flex-shrink-0"
+                />
+                <div className="flex-1">
+                  <label
+                    htmlFor="needsCustomerPhoto"
+                    className="cursor-pointer block text-sm font-medium text-[#1a2332]"
+                  >
+                    Requires Single Customer Photo
+                  </label>
+                  <p className="text-xs text-[#64748b] mt-0.5">
+                    For photo products (mugs with photo, photo frames, t-shirts
+                    with pictures)
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 p-2 hover:bg-white/50 rounded transition">
+                <input
+                  id="multipleImagesRequired"
+                  type="checkbox"
+                  checked={formData.multipleImagesRequired}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      multipleImagesRequired: e.target.checked,
+                      numberOfImagesRequired: e.target.checked
+                        ? formData.numberOfImagesRequired
+                        : "",
+                    })
+                  }
+                  className="w-5 h-5 cursor-pointer border-2 border-[#E5E7EB] rounded mt-1 flex-shrink-0"
+                />
+                <div className="flex-1">
+                  <label
+                    htmlFor="multipleImagesRequired"
+                    className="cursor-pointer block text-sm font-medium text-[#1a2332]"
+                  >
+                    Requires Multiple Customer Images
+                  </label>
+                  <p className="text-xs text-[#64748b] mt-0.5">
+                    For collages, photo albums, montages (customer uploads
+                    multiple photos)
+                  </p>
+                </div>
+              </div>
+
+              {formData.multipleImagesRequired && (
+                <div className="ml-8 mt-4 p-3 bg-white border-l-4 border-blue-600 rounded">
+                  <Input
+                    label="How many images should customer upload?"
+                    type="number"
+                    min="2"
+                    max="10"
+                    value={formData.numberOfImagesRequired}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        numberOfImagesRequired: e.target.value,
+                      })
+                    }
+                    placeholder="e.g., 3, 5, or 6"
+                    required
+                  />
+                  <p className="text-xs text-[#64748b] mt-2">
+                    Customer will be required to upload exactly this many images
+                    during checkout
+                  </p>
+                </div>
+              )}
             </div>
-            <div className="flex items-center space-x-3">
-              <input
-                id="needsCustomerPhoto"
-                type="checkbox"
-                checked={formData.needsCustomerPhoto}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    needsCustomerPhoto: e.target.checked,
-                  })
-                }
-                className="w-5 h-5 cursor-pointer border border-[#E5E7EB] rounded"
-              />
-              <label
-                htmlFor="needsCustomerPhoto"
-                className="cursor-pointer text-sm text-[#111827]"
-              >
-                Requires Customer Photo (e.g., photo products)
-              </label>
-            </div>
-            <div className="flex items-center space-x-3">
-              <input
-                id="multipleImagesRequired"
-                type="checkbox"
-                checked={formData.multipleImagesRequired}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    multipleImagesRequired: e.target.checked,
-                    numberOfImagesRequired: e.target.checked
-                      ? formData.numberOfImagesRequired
-                      : "",
-                  })
-                }
-                className="w-5 h-5 cursor-pointer border border-[#E5E7EB] rounded"
-              />
-              <label
-                htmlFor="multipleImagesRequired"
-                className="cursor-pointer text-sm text-[#111827]"
-              >
-                Requires Multiple Customer Images
-              </label>
-            </div>
-            {formData.multipleImagesRequired && (
-              <Input
-                label="Number of Images Required"
-                type="number"
-                min="1"
-                max="10"
-                value={formData.numberOfImagesRequired}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    numberOfImagesRequired: e.target.value,
-                  })
-                }
-                placeholder="e.g., 3 or 5"
-                required
-              />
-            )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
