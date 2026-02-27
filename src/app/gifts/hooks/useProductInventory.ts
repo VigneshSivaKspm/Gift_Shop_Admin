@@ -1,11 +1,7 @@
 // Custom hook for product inventory management
 import { useState, useCallback, useEffect } from "react";
 import { GiftProduct } from "../types";
-import {
-  getAllProductsFromFirestore,
-  getProductsByCategory,
-} from "../services/giftsFirestoreService";
-import { mockGiftProducts } from "../data/mockData";
+import { getMainProductsForBilling } from "../services/giftsFirestoreService";
 
 interface ProductFilters {
   category?: string;
@@ -14,9 +10,8 @@ interface ProductFilters {
 }
 
 export const useProductInventory = () => {
-  const [products, setProducts] = useState<GiftProduct[]>(mockGiftProducts);
-  const [filteredProducts, setFilteredProducts] =
-    useState<GiftProduct[]>(mockGiftProducts);
+  const [products, setProducts] = useState<GiftProduct[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<GiftProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,16 +19,14 @@ export const useProductInventory = () => {
     setLoading(true);
     setError(null);
     try {
-      // For MVP, using mock data. In production, uncomment below:
-      // const allProducts = await getAllProductsFromFirestore();
-      // setProducts(allProducts);
-      // setFilteredProducts(allProducts);
-
-      // Using mock data for now
-      setProducts(mockGiftProducts);
-      setFilteredProducts(mockGiftProducts);
+      // Load products from main Firestore collection
+      const allProducts = await getMainProductsForBilling();
+      setProducts(allProducts);
+      setFilteredProducts(allProducts);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load products");
+      setProducts([]);
+      setFilteredProducts([]);
     } finally {
       setLoading(false);
     }

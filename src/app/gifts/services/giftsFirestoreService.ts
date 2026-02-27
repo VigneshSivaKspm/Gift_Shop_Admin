@@ -308,6 +308,41 @@ export const getAllProductsFromFirestore = async (): Promise<GiftProduct[]> => {
   }
 };
 
+/**
+ * Get all products from main products collection
+ * Converts main Product type to GiftProduct format
+ */
+export const getMainProductsForBilling = async (): Promise<GiftProduct[]> => {
+  try {
+    const q = query(collection(firestore, "products"));
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs.map(
+      (doc: QueryDocumentSnapshot<DocumentData>) => {
+        const data = doc.data();
+        // Convert main Product to GiftProduct format
+        return {
+          id: doc.id,
+          name: data.name || "",
+          description: data.description || "",
+          category: data.category || "Uncategorized",
+          price: data.sellingPrice || data.retailPrice || 0,
+          costPrice: data.costPrice || 0,
+          taxRate: 18, // Default GST rate
+          stock: data.stock || 0,
+          imageUrl: data.image || "",
+          isActive: true,
+          createdAt: data.createdAt?.toDate?.() || new Date(),
+          updatedAt: data.updatedAt?.toDate?.() || new Date(),
+        } as GiftProduct;
+      },
+    );
+  } catch (error) {
+    console.error("Error getting main products:", error);
+    throw new Error("Failed to retrieve products from main catalog");
+  }
+};
+
 export const getProductsByCategory = async (
   category: string,
 ): Promise<GiftProduct[]> => {
