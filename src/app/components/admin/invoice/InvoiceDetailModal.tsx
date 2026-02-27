@@ -47,7 +47,6 @@ export function InvoiceDetailModal({
 
   const getPaymentMethodLabel = (method: string): string => {
     const methods: Record<string, string> = {
-      cash: "💵 Cash",
       card: "💳 Card",
       upi: "📱 UPI",
       cheque: "📄 Cheque",

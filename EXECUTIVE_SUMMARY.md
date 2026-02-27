@@ -48,7 +48,7 @@ Set Quantities & Review Items
   ↓
 Apply Discounts (infrastructure ready)
   ↓
-Select Payment Method (Cash, Card, UPI, Bank, Wallet)
+Select Payment Method (Card, UPI, Bank, Wallet)
   ↓
 Enter Payment Details
   ↓
@@ -70,7 +70,6 @@ Success Message & Clear for Next Customer
 
 ### ✅ Payment Methods
 
-- **Cash** - Direct payment
 - **Card** - Debit/Credit with reference
 - **UPI** - Digital wallets (Google Pay, PhonePe)
 - **Bank Transfer** - With account & IFSC

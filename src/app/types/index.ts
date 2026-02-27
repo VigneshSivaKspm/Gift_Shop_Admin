@@ -81,7 +81,7 @@ export interface Invoice {
   tax: number;
   discount?: number;
   total: number;
-  paymentMethod: "cash" | "card" | "upi" | "cheque" | "bank-transfer";
+  paymentMethod: "card" | "upi" | "cheque" | "bank-transfer";
   paymentStatus: "paid" | "pending" | "partial";
   notes?: string;
   createdAt: Date;

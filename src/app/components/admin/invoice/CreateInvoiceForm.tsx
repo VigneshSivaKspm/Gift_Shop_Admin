@@ -35,8 +35,8 @@ export function CreateInvoiceForm({
   const [taxRate, setTaxRate] = useState<number>(0);
   const [discount, setDiscount] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<
-    "cash" | "card" | "upi" | "cheque" | "bank-transfer"
-  >("cash");
+    "card" | "upi" | "cheque" | "bank-transfer"
+  >("card");
   const [paymentStatus, setPaymentStatus] = useState<
     "paid" | "pending" | "partial"
   >("paid");
@@ -46,7 +46,6 @@ export function CreateInvoiceForm({
   const [createdInvoiceData, setCreatedInvoiceData] = useState<any>(null);
 
   const paymentMethods = [
-    { value: "cash", label: "Cash" },
     { value: "card", label: "Card" },
     { value: "upi", label: "UPI" },
     { value: "cheque", label: "Cheque" },

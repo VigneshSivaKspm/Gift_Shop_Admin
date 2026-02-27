@@ -75,7 +75,7 @@ Then navigate to: `http://localhost:5173`
 
 - [ ] Click "Proceed to Payment"
 - [ ] Modal opens with payment methods
-- [ ] Select "Cash", enter amount, click "Add Payment"
+- [ ] Select "UPI" or "Card", enter amount, click "Add Payment"
 - [ ] Amount should appear in payment list
 - [ ] Balance due should update (0 if fully paid)
 - [ ] Click "Complete Sale"

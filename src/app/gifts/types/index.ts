@@ -96,7 +96,7 @@ export interface Bill {
 }
 
 export interface PaymentMode {
-  method: "cash" | "card" | "upi" | "bank" | "cheque" | "wallet";
+  method: "card" | "upi" | "bank" | "cheque" | "wallet";
   amount: number;
   reference?: string;
   date: Date;
@@ -104,7 +104,7 @@ export interface PaymentMode {
 
 export interface PaymentDetails {
   id: string;
-  method: "cash" | "card" | "upi" | "bank" | "cheque" | "wallet";
+  method: "card" | "upi" | "bank" | "cheque" | "wallet";
   amount: number;
   reference?: string;
   transactionId?: string;
@@ -153,7 +153,7 @@ export interface AnalyticsData {
     revenue: number;
   }>;
   paymentMethods: {
-    [key: string]: number; // cash: 1000, card: 2000, etc.
+    [key: string]: number; // card: 2000, upi: 1000, etc.
   };
   dateRange: {
     startDate: Date;

@@ -137,7 +137,7 @@ export const prepareInvoiceDataFromVisit = (visit, overrides = {}) => {
     discountType: visit.discountType || overrides.discountType || "none",
     // paidAmount should not use totalAmount as fallback (could be subtotal)
     paidAmount: visit.paidAmount || overrides.paidAmount || 0,
-    paymentMode: visit.paymentMode || overrides.paymentMode || "cash",
+    paymentMode: visit.paymentMode || overrides.paymentMode || "card",
     status:
       visit.status === "COMPLETED" ? "paid" : overrides.status || "unpaid",
     couponCode: visit.couponCode || overrides.couponCode || null,
@@ -607,18 +607,16 @@ const getProfessionalBillHTML = (invoiceData, visit) => {
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <span>Payment: <strong>${(() => {
                   const paymentMap = {
-                    cash: "Cash",
                     card: "Card",
                     upi: "UPI",
                     wallet: "Wallet",
-                    unknown: "Cash",
                   };
                   const mode = (
                     invoiceData.paymentMode ||
                     invoiceData.paymentMethod ||
-                    "cash"
+                    "card"
                   ).toLowerCase();
-                  return paymentMap[mode] || "Cash";
+                  return paymentMap[mode] || mode;
                 })()}</strong></span>
                 ${paid >= total ? '<span class="status-pill">Paid</span>' : ""}
               </div>

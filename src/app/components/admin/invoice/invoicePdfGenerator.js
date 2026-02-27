@@ -122,7 +122,6 @@ const getInvoiceHTML = (invoiceData) => {
   );
 
   const paymentMethodMap = {
-    cash: "Cash",
     card: "Card",
     upi: "UPI",
     "bank-transfer": "Bank Transfer",
@@ -514,7 +513,7 @@ const getInvoiceHTML = (invoiceData) => {
             <h3>Payment Information</h3>
             <div class="info-content">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span>Method: <strong>${paymentMethodMap[invoiceData.paymentMethod] || "Cash"}</strong></span>
+                <span>Method: <strong>${paymentMethodMap[invoiceData.paymentMethod] || "Card"}</strong></span>
                 <span class="status-pill">${paymentStatus}</span>
               </div>
               ${invoiceData.notes ? '<span style="color: #2563eb; font-weight: 700; display: block; margin-top: 8px;">Note: ' + invoiceData.notes + "</span>" : ""}

@@ -123,7 +123,6 @@ DOCUMENTATION:
 ```
 - Click "Proceed to Payment" button
 - Modal opens with payment options:
-  * CASH
   * CARD (Visa, Mastercard, etc.)
   * UPI (Google Pay, PhonePe, etc.)
   * BANK TRANSFER (Account, IFSC, Reference)
@@ -190,15 +189,14 @@ Each product has its own tax rate configured.
 
 Currently Supported:
 
-1. **Cash** - Direct payment in cash
-2. **Card** - Debit/Credit card with reference number
-3. **UPI** - Digital payment (Google Pay, PhonePe, etc.)
-4. **Bank Transfer** - Direct bank transfer with account details
-5. **Wallet** - Digital wallets (Paytm, etc.)
+1. **Card** - Debit/Credit card with reference number
+2. **UPI** - Digital payment (Google Pay, PhonePe, etc.)
+3. **Bank Transfer** - Direct bank transfer with account details
+4. **Wallet** - Digital wallets (Paytm, etc.)
 
 **Split Payments:** Yes! You can mix payment methods:
 
-- ₹1,000 in Cash + ₹2,000 via Card for a ₹3,000 bill
+- ₹1,000 via Card + ₹2,000 via UPI for a ₹3,000 bill
 
 ---
 

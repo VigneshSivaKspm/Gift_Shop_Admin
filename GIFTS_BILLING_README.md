@@ -17,7 +17,7 @@ A complete billing and point-of-sale (POS) system for a gifts selling e-commerce
 - ✅ **Product Catalog**: Browse products with categories, pricing, and stock status
 - ✅ **Bill Creation**: Add multiple products, adjust quantities, remove items
 - ✅ **Real-time Calculations**: Subtotal, tax (GST), discounts, totals auto-calculated
-- ✅ **Payment Processing**: Multiple payment modes (cash, card, UPI, bank, wallet)
+- ✅ **Payment Processing**: Multiple payment modes (card, UPI, bank, wallet)
 - ✅ **Invoice/PDF Generation**: Professional invoices with jsPDF
 - ✅ **Invoice History**: Search, view, print, and download all invoices
 - ✅ **Firebase Integration**: All bills and customers saved to Firestore
@@ -230,7 +230,6 @@ Customer database
 ### 5. Payment Processing
 
 - Multiple payment modes:
-  - **Cash**: Direct payment
   - **Card**: Credit/Debit with transaction reference
   - **UPI**: Digital wallet transfer
   - **Bank Transfer**: With reference number
@@ -495,7 +494,7 @@ Ready for future backend integration:
 1. Search for "Raj Sharma" (existing customer)
 2. Add "Luxury Watch" (₹4999 + 28% GST = ₹6398.72)
 3. Preview bill
-4. Pay ₹6400 cash
+4. Pay ₹6400 via card
 5. Verify bill created and saved
 
 ### Test Case 2: New Customer
@@ -511,7 +510,7 @@ Ready for future backend integration:
 
 1. Add 3 different products
 2. Apply 10% discount
-3. Split payment: ₹3000 cash + remaining card
+3. Split payment: ₹3000 via UPI + remaining card
 4. Verify totals and balance due
 
 ### Test Case 4: Invoice History
